@@ -4,7 +4,7 @@
    =================================================== */
 
 // ───────────── Configuration ─────────────
-const API_BASE = ''; // Set to backend URL when available, e.g. 'https://api.example.com'
+const API_BASE = 'http://localhost:8000'; // Set to backend URL when available, e.g. 'https://api.example.com'
 const STORAGE_KEY = 'clinassist_queries';
 const SETTINGS_KEY = 'clinassist_settings';
 
@@ -143,13 +143,14 @@ function submitPatientQuery() {
   const name = document.getElementById('patientName')?.value?.trim();
   const email = document.getElementById('patientEmail')?.value?.trim();
   const phone = document.getElementById('patientPhone')?.value?.trim();
-  const department = document.getElementById('patientDept')?.value;
-  const category = document.getElementById('patientCategory')?.value;
-  const urgency = document.getElementById('patientUrgency')?.value;
+  const department = 'Triage'; // To be assigned by AI or staff
+  const category = 'general';
+  const urgency = 'Medium'; // Will be overridden by AI
+
   const message = document.getElementById('patientMessage')?.value?.trim();
 
   // Validation
-  if (!name || !email || !phone || !department || !category || !urgency || !message) {
+  if (!name || !email || !phone || !message) {
     showToast('Please fill in all required fields.', 'error');
     return;
   }
@@ -181,25 +182,32 @@ function submitPatientQuery() {
 
   if (API_BASE) {
     // Real backend call
-    fetch(`${API_BASE}/api/patient-query`, {
+    fetch(`${API_BASE}/suggest-response`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ query: payload.message })
     })
-    .then(res => {
-      if (!res.ok) throw new Error('Server error');
-      return res.json();
-    })
-    .then(data => {
-      queryData.aiResponse = data.aiResponse || generateAIDraft(queryData);
-      finalizeSubmission(queryData, loadingOverlay, responsePanel);
-    })
-    .catch(err => {
-      // Fallback to local AI
-      console.warn('Backend unavailable, using local AI:', err);
-      queryData.aiResponse = generateAIDraft(queryData);
-      finalizeSubmission(queryData, loadingOverlay, responsePanel);
-    });
+      .then(res => {
+        if (!res.ok) throw new Error('Server error');
+        return res.json();
+      })
+      .then(data => {
+        if (data.category) queryData.category = data.category;
+        if (data.urgency) {
+          let urg = data.urgency.toLowerCase();
+          if (urg === 'low') queryData.urgency = 'Low';
+          else if (urg === 'high') queryData.urgency = 'High';
+          else queryData.urgency = 'Medium';
+        }
+        queryData.aiResponse = data.suggested_reply || generateAIDraft(queryData);
+        finalizeSubmission(queryData, loadingOverlay, responsePanel);
+      })
+      .catch(err => {
+        // Fallback to local AI
+        console.warn('Backend unavailable, using local AI:', err);
+        queryData.aiResponse = generateAIDraft(queryData);
+        finalizeSubmission(queryData, loadingOverlay, responsePanel);
+      });
   } else {
     // Local simulation with realistic delay
     setTimeout(() => {
@@ -215,10 +223,9 @@ function finalizeSubmission(queryData, loadingOverlay, responsePanel) {
   queries.unshift(queryData);
   saveQueries();
 
-  // Show response
+  // Show success panel (no longer showing AI dictation here)
   loadingOverlay.classList.remove('active');
   responsePanel.style.display = 'block';
-  document.getElementById('responseContent').textContent = queryData.aiResponse;
 
   showToast('Query submitted successfully!', 'success');
 }
@@ -228,12 +235,100 @@ function resetForm() {
   const responsePanel = document.getElementById('responsePanel');
   const errorPanel = document.getElementById('errorPanel');
 
-  formCard.style.display = 'block';
-  responsePanel.style.display = 'none';
-  errorPanel.style.display = 'none';
+  if (formCard) formCard.style.display = 'block';
+  if (responsePanel) responsePanel.style.display = 'none';
+  if (errorPanel) errorPanel.style.display = 'none';
   document.getElementById('patientQueryForm')?.reset();
   const fileDisplay = document.getElementById('fileNameDisplay');
   if (fileDisplay) fileDisplay.style.display = 'none';
+}
+
+// ─────────── Patient Status Lookup Functions ───────────
+
+function switchPatientTab(tab) {
+  const btnNew = document.getElementById('tabNewQuery');
+  const btnStatus = document.getElementById('tabCheckStatus');
+  const secNew = document.getElementById('sectionNewQuery');
+  const secStatus = document.getElementById('sectionCheckStatus');
+
+  if (tab === 'new') {
+    if (btnNew) { btnNew.classList.add('btn-primary'); btnNew.classList.remove('btn-secondary'); }
+    if (btnStatus) { btnStatus.classList.add('btn-secondary'); btnStatus.classList.remove('btn-primary'); }
+    if (secNew) secNew.style.display = 'block';
+    if (secStatus) secStatus.style.display = 'none';
+  } else {
+    if (btnStatus) { btnStatus.classList.add('btn-primary'); btnStatus.classList.remove('btn-secondary'); }
+    if (btnNew) { btnNew.classList.add('btn-secondary'); btnNew.classList.remove('btn-primary'); }
+    if (secStatus) secStatus.style.display = 'block';
+    if (secNew) secNew.style.display = 'none';
+
+    // Clear previous results on open
+    const resultsArea = document.getElementById('lookupResultsArea');
+    if (resultsArea) resultsArea.innerHTML = '';
+  }
+}
+
+function lookupQueries() {
+  const email = document.getElementById('lookupEmail')?.value?.trim().toLowerCase();
+  const resultsArea = document.getElementById('lookupResultsArea');
+
+  if (!email) {
+    showToast('Please enter an email address to lookup.', 'error');
+    return;
+  }
+  if (!resultsArea) return;
+
+  loadQueries();
+  const userQueries = queries.filter(q => q.email.toLowerCase() === email);
+
+  if (userQueries.length === 0) {
+    resultsArea.innerHTML = `
+      <div class="empty-state glass-strong" style="padding: 30px; text-align: center;">
+        <div class="empty-state-icon" style="font-size: 2rem; margin-bottom: 10px;">🔍</div>
+        <h4 style="color: var(--primary);">No Queries Found</h4>
+        <p style="color: var(--grey-300);">We couldn't find any queries associated with <b>${escapeHtml(email)}</b>.</p>
+      </div>`;
+    return;
+  }
+
+  resultsArea.innerHTML = `<h4 style="margin-bottom: 20px; color: var(--text);">Your Queries</h4>` +
+    userQueries.map(q => {
+      const isApproved = q.status === 'approved';
+      const statusBadge = isApproved
+        ? `<span class="badge badge-success" style="float: right;">Approved</span>`
+        : `<span class="badge badge-warning" style="float: right;">Pending Review</span>`;
+
+      let responseSection = '';
+      if (isApproved) {
+        responseSection = `
+          <div style="margin-top: 15px; padding: 15px; background: rgba(30, 215, 96, 0.1); border-left: 3px solid var(--success); border-radius: 4px;">
+            <p style="font-size: 0.85rem; color: var(--grey-400); margin-bottom: 8px;"><strong>Staff Response:</strong></p>
+            <p style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.5;">${escapeHtml(q.aiResponse)}</p>
+            <p style="font-size: 0.8rem; color: var(--grey-400); margin-top: 10px; text-align: right;">— Approved by ${escapeHtml(q.approvedBy || 'Staff')}</p>
+          </div>
+        `;
+      } else {
+        responseSection = `
+          <div style="margin-top: 15px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; text-align: center;">
+            <p style="color: var(--grey-300); font-style: italic;"><i class="fas fa-clock"></i> Your query is currently being reviewed by our clinical staff.</p>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="glass-strong" style="margin-bottom: 20px; padding: 20px; border-radius: 12px;">
+          <div style="margin-bottom: 10px;">
+            ${statusBadge}
+            <div style="font-size: 0.85rem; color: var(--grey-400);"><i class="far fa-clock"></i> Submitted: ${formatTimestamp(q.timestamp)}</div>
+          </div>
+          <div style="margin-top: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <p style="font-weight: 600; margin-bottom: 5px;">Query:</p>
+            <p style="font-size: 0.9rem; color: var(--grey-200);">${escapeHtml(q.message)}</p>
+          </div>
+          ${responseSection}
+        </div>
+      `;
+    }).join('');
 }
 
 function retrySubmission() {
@@ -446,28 +541,24 @@ function regenerateSuggestion() {
   }
 
   if (API_BASE) {
-    fetch(`${API_BASE}/api/generate-response`, {
+    fetch(`${API_BASE}/suggest-response`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        queryId: currentQueryId,
-        query: query.message,
-        ...getSettings()
+      body: JSON.stringify({ query: query.message })
+    })
+      .then(res => res.json())
+      .then(data => {
+        query.aiResponse = data.suggested_reply || generateAIDraft(query);
+        saveQueries();
+        if (textarea) { textarea.value = query.aiResponse; textarea.disabled = false; }
+        showToast('Response regenerated!', 'success');
       })
-    })
-    .then(res => res.json())
-    .then(data => {
-      query.aiResponse = data.aiResponse || generateAIDraft(query);
-      saveQueries();
-      if (textarea) { textarea.value = query.aiResponse; textarea.disabled = false; }
-      showToast('Response regenerated!', 'success');
-    })
-    .catch(() => {
-      query.aiResponse = generateAIDraft(query);
-      saveQueries();
-      if (textarea) { textarea.value = query.aiResponse; textarea.disabled = false; }
-      showToast('Response regenerated (local).', 'info');
-    });
+      .catch(() => {
+        query.aiResponse = generateAIDraft(query);
+        saveQueries();
+        if (textarea) { textarea.value = query.aiResponse; textarea.disabled = false; }
+        showToast('Response regenerated (local).', 'info');
+      });
   } else {
     setTimeout(() => {
       query.aiResponse = generateAIDraft(query);
