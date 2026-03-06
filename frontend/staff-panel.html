@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Staff Dashboard — Review, edit, and approve AI-generated clinical responses for patient queries.">
+    <title>Staff Panel — ClinAssist AI</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="staff-layout">
+
+        <!-- ========== SIDEBAR ========== -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-icon"><i class="fas fa-heartbeat"></i></div>
+                ClinAssist AI
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-nav-label">Main</div>
+
+                <div class="sidebar-nav-item active" data-section="dashboard"
+                    onclick="switchSection('dashboard', this)">
+                    <span class="nav-icon"><i class="fas fa-th-large"></i></span>
+                    Dashboard
+                </div>
+
+                <div class="sidebar-nav-item" data-section="incoming" onclick="switchSection('incoming', this)">
+                    <span class="nav-icon"><i class="fas fa-inbox"></i></span>
+                    Incoming Queries
+                    <span class="nav-badge" id="queryCountBadge">0</span>
+                </div>
+
+                <div class="sidebar-nav-item" data-section="generate" onclick="switchSection('generate', this)">
+                    <span class="nav-icon"><i class="fas fa-magic"></i></span>
+                    Generate Response
+                </div>
+
+                <div class="sidebar-nav-item" data-section="history" onclick="switchSection('history', this)">
+                    <span class="nav-icon"><i class="fas fa-history"></i></span>
+                    Response History
+                </div>
+
+                <div class="sidebar-nav-label">System</div>
+
+                <div class="sidebar-nav-item" data-section="settings" onclick="switchSection('settings', this)">
+                    <span class="nav-icon"><i class="fas fa-cog"></i></span>
+                    Settings
+                </div>
+
+                <a href="index.html" class="sidebar-nav-item">
+                    <span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span>
+                    Back to Home
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar">DR</div>
+                    <div class="sidebar-user-info">
+                        <div class="name">Dr. Rebecca Hart</div>
+                        <div class="role">Senior Physician</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Sidebar Overlay (mobile) -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        <!-- ========== MAIN CONTENT ========== -->
+        <div class="main-content">
+
+            <!-- Sticky Header -->
+            <header class="top-header">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h2 id="sectionTitle">Dashboard</h2>
+                </div>
+                <div class="top-header-actions">
+                    <div class="search-box">
+                        <span class="search-icon"><i class="fas fa-search"></i></span>
+                        <input type="text" placeholder="Search queries..." id="searchInput" oninput="filterQueries()">
+                    </div>
+                    <button class="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="notif-dot"></span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="content-area">
+
+                <!-- ===== DASHBOARD SECTION ===== -->
+                <section class="panel-section active" id="sec-dashboard">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon blue"><i class="fas fa-inbox"></i></div>
+                            <div class="stat-info">
+                                <h4 id="statTotal">0</h4>
+                                <p>Total Queries</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
+                            <div class="stat-info">
+                                <h4 id="statPending">0</h4>
+                                <p>Pending Review</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+                            <div class="stat-info">
+                                <h4 id="statApproved">0</h4>
+                                <p>Approved</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon red"><i class="fas fa-exclamation-triangle"></i></div>
+                            <div class="stat-info">
+                                <h4 id="statHigh">0</h4>
+                                <p>High Urgency</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-bottom:16px;">Recent Queries</h3>
+                    <div class="queries-list" id="dashboardQueries"></div>
+                </section>
+
+                <!-- ===== INCOMING QUERIES SECTION ===== -->
+                <section class="panel-section" id="sec-incoming">
+                    <!-- List view -->
+                    <div id="incomingListView">
+                        <div
+                            style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+                            <p class="text-muted"><span id="incomingCount">0</span> queries</p>
+                            <div style="display:flex; gap:8px;">
+                                <button class="btn btn-ghost btn-sm" onclick="filterByUrgency('all')">All</button>
+                                <button class="btn btn-ghost btn-sm" onclick="filterByUrgency('High')">🔴 High</button>
+                                <button class="btn btn-ghost btn-sm" onclick="filterByUrgency('Medium')">🟡
+                                    Medium</button>
+                                <button class="btn btn-ghost btn-sm" onclick="filterByUrgency('Low')">🟢 Low</button>
+                            </div>
+                        </div>
+                        <div class="queries-list" id="incomingQueries"></div>
+                    </div>
+
+                    <!-- Detail view -->
+                    <div id="incomingDetailView" style="display:none;">
+                        <div class="back-btn" onclick="closeQueryDetail()">
+                            <i class="fas fa-arrow-left"></i> Back to Queries
+                        </div>
+                        <div class="query-detail-split">
+                            <!-- Left: Patient query -->
+                            <div class="detail-panel">
+                                <h3><i class="fas fa-file-medical" style="color:var(--primary); margin-right:8px;"></i>
+                                    Patient Query</h3>
+                                <div class="detail-field">
+                                    <div class="label">Patient Name</div>
+                                    <div class="value" id="detailName">—</div>
+                                </div>
+                                <div class="detail-field">
+                                    <div class="label">Email</div>
+                                    <div class="value" id="detailEmail">—</div>
+                                </div>
+                                <div class="detail-field">
+                                    <div class="label">Phone</div>
+                                    <div class="value" id="detailPhone">—</div>
+                                </div>
+                                <div class="detail-field">
+                                    <div class="label">Department</div>
+                                    <div class="value" id="detailDept">—</div>
+                                </div>
+                                <div class="detail-field">
+                                    <div class="label">Category</div>
+                                    <div class="value" id="detailCategory">—</div>
+                                </div>
+                                <div class="detail-field">
+                                    <div class="label">Urgency</div>
+                                    <div class="value" id="detailUrgency">—</div>
+                                </div>
+                                <div class="detail-field">
+                                    <div class="label">Message</div>
+                                    <div class="value" id="detailMessage" style="white-space:pre-wrap;">—</div>
+                                </div>
+                                <div class="detail-field">
+                                    <div class="label">Submitted</div>
+                                    <div class="value" id="detailTimestamp">—</div>
+                                </div>
+                            </div>
+
+                            <!-- Right: AI Suggestion -->
+                            <div class="detail-panel">
+                                <h3><i class="fas fa-robot" style="color:var(--primary); margin-right:8px;"></i> AI
+                                    Suggested Response</h3>
+                                <div class="ai-notice">
+                                    <span class="ai-notice-icon">🤖</span>
+                                    <div><strong>AI-generated draft.</strong> Staff review required before sending.
+                                    </div>
+                                </div>
+                                <textarea class="ai-textarea" id="aiResponseTextarea"
+                                    placeholder="AI suggestion will appear here..."></textarea>
+                                <div class="detail-actions">
+                                    <button class="btn btn-warning btn-sm" onclick="regenerateSuggestion()">
+                                        <i class="fas fa-sync-alt"></i> Regenerate
+                                    </button>
+                                    <button class="btn btn-success btn-sm" onclick="approveCurrentResponse()">
+                                        <i class="fas fa-check"></i> Approve &amp; Send
+                                    </button>
+                                    <button class="btn btn-secondary btn-sm" onclick="markAsReviewed()">
+                                        <i class="fas fa-eye"></i> Mark as Reviewed
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== GENERATE RESPONSE ===== -->
+                <section class="panel-section" id="sec-generate">
+                    <div class="detail-panel" style="max-width:700px;">
+                        <h3><i class="fas fa-magic" style="color:var(--primary); margin-right:8px;"></i> Generate AI
+                            Response</h3>
+                        <p class="text-muted text-small" style="margin-bottom:20px;">Enter a patient query manually to
+                            generate an AI clinical response draft.</p>
+
+                        <div class="form-group">
+                            <label>Patient Query <span class="required">*</span></label>
+                            <textarea class="form-control" id="manualQuery"
+                                placeholder="Paste or type the patient query here..." rows="5"></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Department</label>
+                                <select class="form-control" id="manualDept">
+                                    <option value="General Medicine">General Medicine</option>
+                                    <option value="Cardiology">Cardiology</option>
+                                    <option value="Orthopedics">Orthopedics</option>
+                                    <option value="Neurology">Neurology</option>
+                                    <option value="Dermatology">Dermatology</option>
+                                    <option value="Pediatrics">Pediatrics</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Category</label>
+                                <select class="form-control" id="manualCategory">
+                                    <option value="Symptoms & Diagnosis">Symptoms &amp; Diagnosis</option>
+                                    <option value="Medication Inquiry">Medication Inquiry</option>
+                                    <option value="Lab Results">Lab Results</option>
+                                    <option value="Follow-up Care">Follow-up Care</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary" onclick="generateManualResponse()">
+                            <i class="fas fa-robot"></i> Generate Response
+                        </button>
+
+                        <div id="manualResponseArea" style="margin-top:24px; display:none;">
+                            <div class="ai-notice">
+                                <span class="ai-notice-icon">🤖</span>
+                                <div><strong>AI-generated draft.</strong> Review and edit before using.</div>
+                            </div>
+                            <textarea class="ai-textarea" id="manualResponseText" placeholder=""></textarea>
+                            <div class="detail-actions">
+                                <button class="btn btn-ghost btn-sm" onclick="copyResponse()">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== RESPONSE HISTORY ===== -->
+                <section class="panel-section" id="sec-history">
+                    <table class="history-table" id="historyTable">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Department</th>
+                                <th>Urgency</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyBody"></tbody>
+                    </table>
+                    <div class="empty-state" id="historyEmpty" style="display:none;">
+                        <div class="empty-state-icon">📋</div>
+                        <h3>No Response History</h3>
+                        <p>All processed queries will appear here.</p>
+                    </div>
+                </section>
+
+                <!-- ===== SETTINGS ===== -->
+                <section class="panel-section" id="sec-settings">
+                    <div class="settings-grid">
+                        <!-- Tone -->
+                        <div class="settings-card">
+                            <h3><i class="fas fa-comment-dots" style="color:var(--primary); margin-right:8px;"></i>
+                                Response Tone</h3>
+                            <p class="text-muted text-small" style="margin-bottom:16px;">Configure how the AI generates
+                                response drafts.</p>
+                            <div class="radio-group" id="toneGroup">
+                                <label class="radio-option">
+                                    <input type="radio" name="tone" value="professional" checked>
+                                    <div>
+                                        <div class="radio-label">Professional</div>
+                                        <div class="radio-desc">Formal, clinical language</div>
+                                    </div>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="tone" value="empathetic">
+                                    <div>
+                                        <div class="radio-label">Empathetic</div>
+                                        <div class="radio-desc">Warm, compassionate phrasing</div>
+                                    </div>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="tone" value="concise">
+                                    <div>
+                                        <div class="radio-label">Concise</div>
+                                        <div class="radio-desc">Brief and to the point</div>
+                                    </div>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="tone" value="detailed">
+                                    <div>
+                                        <div class="radio-label">Detailed</div>
+                                        <div class="radio-desc">Thorough explanations with context</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Strictness -->
+                        <div class="settings-card">
+                            <h3><i class="fas fa-shield-alt" style="color:var(--primary); margin-right:8px;"></i>
+                                Medical Strictness</h3>
+                            <p class="text-muted text-small" style="margin-bottom:16px;">Control the level of medical
+                                precision in AI responses.</p>
+                            <div class="radio-group" id="strictnessGroup">
+                                <label class="radio-option">
+                                    <input type="radio" name="strictness" value="strict">
+                                    <div>
+                                        <div class="radio-label">Strict Clinical</div>
+                                        <div class="radio-desc">Only evidence-based clinical language</div>
+                                    </div>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="strictness" value="balanced" checked>
+                                    <div>
+                                        <div class="radio-label">Balanced</div>
+                                        <div class="radio-desc">Mix of clinical accuracy and accessibility</div>
+                                    </div>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="strictness" value="patient-friendly">
+                                    <div>
+                                        <div class="radio-label">Patient-Friendly</div>
+                                        <div class="radio-desc">Easy-to-understand language for patients</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:24px;">
+                        <button class="btn btn-primary" onclick="saveSettings()">
+                            <i class="fas fa-save"></i> Save Settings
+                        </button>
+                    </div>
+                </section>
+
+            </div><!-- /content-area -->
+        </div><!-- /main-content -->
+    </div><!-- /staff-layout -->
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/ai.js"></script>
+    <script>
+        // Initialize staff panel
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAllQueries();
+            updateStats();
+        });
+    </script>
+</body>
+
+</html>
