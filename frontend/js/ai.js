@@ -4,7 +4,7 @@
    =================================================== */
 
 // ───────────── Configuration ─────────────
-const API_BASE = 'http://localhost:8000'; // Set to backend URL when available, e.g. 'https://api.example.com'
+const API_BASE = 'https://bck-round3.onrender.com'; // Set to backend URL when available, e.g. 'https://api.example.com'
 const STORAGE_KEY = 'clinassist_queries';
 const SETTINGS_KEY = 'clinassist_settings';
 
