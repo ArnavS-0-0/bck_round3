@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="AI-Based Clinical Response Assistant — Submit medical queries or manage patient communications through AI-assisted drafting.">
+    <title>AI Clinical Response Assistant</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body class="landing-page bg-gradient">
+
+    <!-- ========== NAVBAR ========== -->
+    <nav class="navbar" id="navbar">
+        <a href="index.html" class="navbar-brand">
+            <div class="navbar-brand-icon">
+                <i class="fas fa-heartbeat"></i>
+            </div>
+            ClinAssist AI
+        </a>
+        <div class="navbar-nav">
+            <a href="patient.html" class="btn btn-secondary btn-sm">Patient Portal</a>
+            <a href="staff-panel.html" class="btn btn-primary btn-sm">Staff Login</a>
+        </div>
+    </nav>
+
+    <!-- ========== HERO ========== -->
+    <section class="hero">
+        <div class="hero-bg">
+            <div class="hero-bg-orb"></div>
+            <div class="hero-bg-orb"></div>
+            <div class="hero-bg-orb"></div>
+        </div>
+
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span class="hero-badge-dot"></span>
+                Healthcare AI Platform
+            </div>
+
+            <h1>
+                AI-Based <span class="highlight">Clinical Response</span> Assistant
+            </h1>
+
+            <p class="hero-subtitle">
+                Submit medical queries or manage patient communications through AI-assisted drafting.
+                Empowering hospitals with intelligent, human-reviewed clinical responses.
+            </p>
+
+            <div class="hero-actions">
+                <a href="patient.html" class="btn btn-primary btn-lg">
+                    <i class="fas fa-user"></i>
+                    Patient Portal
+                </a>
+                <a href="staff-panel.html" class="btn btn-secondary btn-lg">
+                    <i class="fas fa-user-md"></i>
+                    Staff Login
+                </a>
+            </div>
+
+            <div class="hero-features">
+                <div class="hero-feature">
+                    <div class="hero-feature-icon"><i class="fas fa-check"></i></div>
+                    AI-Powered Drafts
+                </div>
+                <div class="hero-feature">
+                    <div class="hero-feature-icon"><i class="fas fa-check"></i></div>
+                    Staff-Reviewed Responses
+                </div>
+                <div class="hero-feature">
+                    <div class="hero-feature-icon"><i class="fas fa-check"></i></div>
+                    HIPAA-Ready Workflow
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FEATURES ========== -->
+    <section class="features-section">
+        <h2>How It Works</h2>
+        <p class="section-subtitle">Structured clinical communication powered by AI, verified by humans.</p>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-card-icon" style="background: var(--info-bg); color: var(--info);">
+                    <i class="fas fa-paper-plane"></i>
+                </div>
+                <h4>Submit Query</h4>
+                <p>Patients submit medical queries through a secure, intuitive portal with department routing and
+                    urgency tagging.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-card-icon" style="background: var(--warning-bg); color: var(--warning);">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h4>AI Draft Response</h4>
+                <p>The AI engine generates a preliminary clinical response based on the query context, tone, and medical
+                    guidelines.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-card-icon" style="background: var(--success-bg); color: var(--success);">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <h4>Staff Review & Approve</h4>
+                <p>Hospital staff reviews, edits, and approves every AI-generated draft before it reaches the patient.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-card-icon" style="background: var(--danger-bg); color: var(--danger);">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h4>Audit-Ready Workflow</h4>
+                <p>Every interaction is logged with timestamps, staff identity, and edit history for complete
+                    accountability.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="landing-footer">
+        <p>&copy; 2026 ClinAssist AI — AI-Based Clinical Response Assistant. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 40) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+    </script>
+</body>
+
+</html>
